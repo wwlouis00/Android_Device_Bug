@@ -1,44 +1,44 @@
-# Android Debug Tool 簡單介紹與實做
+# Android Debug Tool
 
-Android 提供了多種強大的調試工具，用於分析和調試 Android 應用程式。這些工具提供了各種功能，從檢測應用程式性能到追蹤程式錯誤，以及監控設備和模擬器的狀態。以下是一些常用的 Android 調試工具：
+Android provides a variety of powerful debugging tools for analyzing and debugging Android applications. These tools offer a range of functionalities, from app performance profiling to tracking program errors, and monitoring device and emulator statuses. Here are some commonly used Android debugging tools:
 
-## 1. Android 調試橋（Android Debug Bridge，ADB）
-ADB 是一個多功能的命令行工具，用於與連接到開發機器的 Android 設備進行通信。開發者可以使用 ADB 執行各種任務，例如安裝和卸載應用程式、複製檔案、調試和測試等。以下是一個簡單的實做範例：
-
+## 1. Android Debug Bridge
+ADB is a versatile command-line tool for communicating with Android devices connected to a development machine. Developers can utilize ADB to perform various tasks such as installing and uninstalling applications, copying files, debugging, and testing, etc. Here's a simple implementation example:
 ```bash
-# 顯示已連接的設備列表
+# Display the list of connected devices
 adb devices
 
-# 安裝 APK 檔案
+# Install an APK file
 adb install path/to/your_app.apk
 
-# 卸載應用程式
+# Uninstall an application.
 adb uninstall com.example.your_app
 ```
 
 ## 2. Logcat
-Logcat 是 Android 平台上的系統日誌工具，用於捕獲和查看應用程式和系統的日誌輸出。以下是一個簡單的實做範例：
+Logcat is a system log tool on the Android platform used to capture and view log outputs from applications and the system. Here's a simple implementation example:
 
 ```bash
-# 查看應用程式的日誌輸出
+# To view the log output of an application:
 adb logcat
 
-# 過濾特定標籤的日誌
+# To filter logs with specific tags:
 adb logcat -s TAG_NAME
 ```
 
 ## 3. Android Profiler
-Android Profiler 提供了一個圖形化界面，用於分析應用程式的性能和行為。以下是一個簡單的實做範例：
+Android Profiler offers a graphical interface to analyze the performance and behavior of your application. Here's a simple implementation example:
 
-1. 在 Android Studio 中打開專案。
-2. 點擊 Android Profiler 面板。
-3. 選擇你想要監視的指標，如 CPU、記憶體、網路等。
-4. 運行你的應用程式並觀察性能數據。
+
+1. Open your project in Android Studio.
+2. Click on the Android Profiler panel.
+3. Choose the metrics you want to monitor, such as CPU, memory, network, etc.
+4. Run your application and observe the performance data.
 
 ## 4. Hierarchy Viewer
-Hierarchy Viewer 是一個視覺化工具，用於檢查和分析 Android 應用程式的用戶界面。以下是一個簡單的實做範例：
+Hierarchy Viewer is a visual tool used to inspect and analyze the user interface of Android applications. Here's a simple implementation example:
 
-1. 在 Android Studio 中打開專案。
-2. 選擇你要檢查的佈局 XML 檔案。
-3. 點擊 Hierarchy Viewer 面板。
-4. 查看佈局層次結構和元素屬性。
+1. Open your project in Android Studio.
+2. Select the layout XML file you want to inspect.
+3. Click on the Hierarchy Viewer panel.
+4. Review the layout hierarchy and element attributes.
