@@ -1,56 +1,66 @@
-import os
+import subprocess
 import time
 
-os.system(r"adb shell setprop persist.horus.rddevmode 1")
-print("[Close CU or SteamVR to Start Test]●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system(r"ECHO TASKKILL /IM vrmonitor.exe")
-print("[Please enter any key to start test when CU and SteamVR are closed]")
-print("\n")
-os.system(r"adb root")
+def run_cmd(cmd, echo=True):
+    """Run a shell command and print its output."""
+    if echo:
+        print(f"[CMD] {cmd}")
+    try:
+        result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+        if result.stdout:
+            print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.output}")
 
-print("[PUSH ITEM]●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system(r"ECHO [adb push C:\Users\PQT2\Desktop\SteamVR.url /storage]")
-os.system(r"adb push C:\Users\PQT2\Desktop\SteamVR.url /storage")
-print("\n")
+def main():
+    # Enable developer mode on Android device
+    run_cmd("adb shell setprop persist.horus.rddevmode 1")
 
-print("[LIST Item]●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system(r"ECHO [adb shell ls storage]")
-os.system(r"adb shell ls storage")
-print("\n")
+    # Prompt user to close CU or SteamVR before starting the test
+    print("[Close CU or SteamVR to Start Test]")
+    run_cmd("TASKKILL /IM vrmonitor.exe")
+    input("[Press Enter to start the test after CU and SteamVR are closed]\n")
 
-time.sleep(1)
+    # Get root access on Android device
+    run_cmd("adb root")
 
-print("[PULL ITEM]●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system(r"ECHO [adb pull /storage/SteamVR.url D:\Tools]")
-os.system(r"adb pull /storage/SteamVR.url D:\Tools")
-os.system(r"Start D:\Tools")
-print("\n")
+    # Push SteamVR.url file to /storage directory on Android device
+    print("[PUSH ITEM]")
+    run_cmd(r'adb push "C:\Users\PQT2\Desktop\SteamVR.url" /storage')
 
-print("[PLEASE CHECK ITEM FROM FOLDER]●●●●●●●●●●●●●●●●●●●●●●●●●")
-print("\n")
+    # List files in /storage directory on Android device
+    print("[LIST ITEM]")
+    run_cmd("adb shell ls /storage")
 
-time.sleep(10)
+    time.sleep(1)
 
-print("[DELETE ITEM]●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system(r"ECHO [del D:\Tools\SteamVR.url]")
-os.system(r"del D:\Tools\SteamVR.url")
-os.system(r"ECHO [adb shell rm storage/SteamVR.url]")
-os.system(r"adb shell rm storage/SteamVR.url")
-print("\n")
+    # Pull SteamVR.url file from Android device to local D:\Tools folder
+    print("[PULL ITEM]")
+    run_cmd(r'adb pull /storage/SteamVR.url D:\Tools')
+    run_cmd(r'Start D:\Tools')
 
-print("[LIST Item]●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system(r"ECHO [adb shell ls storage]")
-os.system(r"adb shell ls storage")
-print("\n")
+    print("[PLEASE CHECK ITEM FROM FOLDER]\n")
+    time.sleep(10)
 
-print("[請按任一按鍵執行 ADB REBOOT]●●●●●●●●●●●●●●●●●●●●●●●●●●")
-os.system("pause")
+    # Delete SteamVR.url file from local and Android device
+    print("[DELETE ITEM]")
+    run_cmd(r'del D:\Tools\SteamVR.url')
+    run_cmd("adb shell rm /storage/SteamVR.url")
 
-os.system(r"adb reboot")
+    # List files again in /storage directory on Android device
+    print("[LIST ITEM]")
+    run_cmd("adb shell ls /storage")
 
-path = os.popen('where /R "c:\Program Files (x86)" ViveConsole.exe')
-runcu = path.read()
-path.close()
+    input("[Press Enter to execute ADB REBOOT]\n")
+    run_cmd("adb reboot")
 
-runcu = runcu.strip()
-os.system(r'"' + runcu + '"')
+    # Search and run ViveConsole.exe if exists
+    result = subprocess.run('where /R "c:\\Program Files (x86)" ViveConsole.exe', shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+    exe_path = result.stdout.strip()
+    if exe_path:
+        run_cmd(f'"{exe_path}"')
+    else:
+        print("ViveConsole.exe not found.")
+
+if __name__ == "__main__":
+    main()
