@@ -1,44 +1,56 @@
 # Android Debug Tool
 
-Android provides a variety of powerful debugging tools for analyzing and debugging Android applications. These tools offer a range of functionalities, from app performance profiling to tracking program errors, and monitoring device and emulator statuses. Here are some commonly used Android debugging tools:
+This project introduces commonly used debugging tools on the Android platform, helping developers analyze, debug applications, and monitor device or emulator status. Below are the main tools and their usage:
 
-## 1. Android Debug Bridge
-ADB is a versatile command-line tool for communicating with Android devices connected to a development machine. Developers can utilize ADB to perform various tasks such as installing and uninstalling applications, copying files, debugging, and testing, etc. Here's a simple implementation example:
+## 1. Android Debug Bridge (ADB)
+
+ADB is a powerful command-line tool for communicating with Android devices connected to your development machine. Common uses include installing/uninstalling apps, file transfer, debugging, and testing.
+
+**Common Commands:**
 ```bash
-# Display the list of connected devices
+# List connected devices
 adb devices
 
-# Install an APK file
+# Install APK file
 adb install path/to/your_app.apk
 
-# Uninstall an application.
+# Uninstall specified app
 adb uninstall com.example.your_app
 ```
 
 ## 2. Logcat
-Logcat is a system log tool on the Android platform used to capture and view log outputs from applications and the system. Here's a simple implementation example:
 
+Logcat is Android’s logging tool for capturing and viewing application and system logs. It helps track errors and analyze behaviors.
+
+**Common Commands:**
 ```bash
-# To view the log output of an application:
+# View all log output
 adb logcat
 
-# To filter logs with specific tags:
+# Filter logs by tag
 adb logcat -s TAG_NAME
 ```
 
 ## 3. Android Profiler
-Android Profiler offers a graphical interface to analyze the performance and behavior of your application. Here's a simple implementation example:
 
+Android Profiler provides a graphical interface to analyze app performance and behavior, including CPU, memory, and network metrics.
 
+**Usage Steps:**
 1. Open your project in Android Studio.
-2. Click on the Android Profiler panel.
-3. Choose the metrics you want to monitor, such as CPU, memory, network, etc.
-4. Run your application and observe the performance data.
+2. Click the Android Profiler panel at the bottom.
+3. Select the metrics to monitor (CPU, memory, network).
+4. Run your app and observe real-time performance data.
 
 ## 4. Hierarchy Viewer
-Hierarchy Viewer is a visual tool used to inspect and analyze the user interface of Android applications. Here's a simple implementation example:
 
+Hierarchy Viewer is a visual tool for inspecting and analyzing the UI structure of Android applications, helping optimize interface design and debugging.
+
+**Usage Steps:**
 1. Open your project in Android Studio.
 2. Select the layout XML file you want to inspect.
-3. Click on the Hierarchy Viewer panel.
-4. Review the layout hierarchy and element attributes.
+3. Click the Hierarchy Viewer panel.
+4. Check the layout hierarchy and component properties.
+
+---
+
+For more details, please refer to the [official Android documentation](https://developer.android.com/studio/debug).
