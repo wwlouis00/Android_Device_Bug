@@ -2,53 +2,76 @@ import os
 import time
 import datetime
 import subprocess
+from pathlib import Path
+
+def run_adb_cmd(cmd):
+    """Executes an ADB command and returns the stripped output."""
+    try:
+        # Use subprocess.check_output for more reliable result capturing
+        result = subprocess.check_output(f'adb shell "{cmd}"', shell=True, stderr=subprocess.STDOUT, universal_newlines=True)
+        return result.strip()
+    except subprocess.CalledProcessError as e:
+        return f"Error: {e.output.strip()}"
 
 def get_panel_status():
-    """取得 panelstatus 結果 (只取中間 4 個字元)"""
-    text = subprocess.getoutput(r'adb shell "su 0 dp panelstatus"')
-    return text[53:57].strip()
-
-def log_to_file(filepath, content):
-    """寫入檔案"""
-    with open(filepath, "a", encoding="utf-8") as f:
-        f.write(content + "\n")
+    """Gets panel status and extracts the relevant state indicator."""
+    raw_output = run_adb_cmd("su 0 dp panelstatus")
+    
+    # Improved parsing: 
+    # If you know the specific word (e.g., '0x01' or 'ON'), 
+    # it's safer to look for that rather than hardcoding index 53:57.
+    # Here we fallback to slicing but add a safety check.
+    if len(raw_output) > 57:
+        return raw_output[53:57].strip()
+    return raw_output[-10:].strip() # Fallback to last 10 chars if output is short
 
 def main():
-    # 建立輸出資料夾
-    base_dir = os.path.abspath(".")
-    log_dir = os.path.join(base_dir, "Display")
-    os.makedirs(log_dir, exist_ok=True)
+    # 1. Setup Directory using Pathlib (Modern approach)
+    log_dir = Path("Display")
+    log_dir.mkdir(exist_ok=True)
 
-    # 紀錄檔案名稱
-    the_time = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    record_file = os.path.join(log_dir, f"OnOffTest_{the_time}.txt")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    record_file = log_dir / f"OnOffTest_{timestamp}.txt"
 
-    # 輸入測試次數
-    rounds = int(input("請輸入執行 Display On/Off 的次數 (每 3 秒一個動作): "))
+    # 2. User Input with basic validation
+    try:
+        total_rounds = int(input("Enter number of On/Off cycles (3s interval): "))
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        return
 
-    for i in range(rounds):
-        print(f"< {i+1} ROUND >")
+    print(f"[INFO] Logging to: {record_file}")
 
-        # Display ON
-        subprocess.run(r'adb shell "su 0 dp displayon"', shell=True)
-        status_on = get_panel_status()
-        log_to_file(record_file, f"ROUND {i+1}")
-        log_to_file(record_file, f"ON  : {status_on}")
-        print(f"ON  : {status_on}")
-        time.sleep(3)
+    # 3. Test Loop
+    with open(record_file, "a", encoding="utf-8") as f:
+        for i in range(1, total_rounds + 1):
+            print(f"\n--- Round {i} ---")
+            f.write(f"ROUND {i}\n")
 
-        # Display OFF
-        subprocess.run(r'adb shell "su 0 dp displayoff"', shell=True)
-        status_off = get_panel_status()
-        log_to_file(record_file, f"OFF : {status_off}\n")
-        print(f"OFF : {status_off}")
-        time.sleep(3)
+            # Sequence: ON then OFF
+            for action in ["displayon", "displayoff"]:
+                # Execute command
+                run_adb_cmd(f"su 0 dp {action}")
+                
+                # Verify status
+                status = get_panel_status()
+                state_label = action.replace("display", "").upper() # "ON" or "OFF"
+                
+                log_entry = f"{state_label:<4}: {status}"
+                print(log_entry)
+                f.write(log_entry + "\n")
+                
+                # Interval between actions
+                if not (i == total_rounds and action == "displayoff"):
+                    time.sleep(3)
+            
+            f.write("\n") # Add newline after each round for readability
 
-    print("執行結束")
+    print("\n[INFO] Test completed.")
     os.system("pause")
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n[INFO] 使用者中斷程式。")
+        print("\n[INFO] Process interrupted by user.")

@@ -1,53 +1,62 @@
 import os
 import time
-import datetime
+import subprocess
+from datetime import datetime
+from pathlib import Path
 
-TestTime = datetime.datetime.now().strftime('%Y%m%d_%H%M')
+def get_mem_available():
+    """Fetches MemAvailable from the connected Android device."""
+    try:
+        # Using grep directly in adb shell
+        cmd = ["adb", "shell", "grep", "-e", "MemAvailable", "/proc/meminfo"]
+        result = subprocess.check_output(cmd, universal_newlines=True, stderr=subprocess.STDOUT)
+        return result.strip()
+    except subprocess.CalledProcessError:
+        return "Error: Could not reach device or fetch memory info."
 
-try:
-    path = os.path.abspath('.') + "\MemOverall_Test"
-    if not os.path.isdir(path):
-        os.mkdir(path)
-except :
- print("Error! Could not create " + path)
- 
+def main():
+    # 1. Setup paths and directories
+    test_time_str = datetime.now().strftime('%Y%m%d_%H%M')
+    base_path = Path.cwd() / "MemOverall_Test"
+    
+    try:
+        base_path.mkdir(exist_ok=True)
+    except Exception as e:
+        print(f"Critical Error: Could not create directory {base_path}. {e}")
+        return
 
-MemStationary = path + r"\MemStationary_"+ TestTime +".txt"
-print("[Path] " + MemStationary + '\n')
+    log_file = base_path / f"MemStationary_{test_time_str}.txt"
+    print(f"[Path] {log_file}\n")
 
-# Origin
-os.system(r"ECHO 【Origin】 >> " + MemStationary)
-os.system(r"adb shell grep -e MemAvailable proc/meminfo >> " + MemStationary)
-os.system(r"ECHO. >> " + MemStationary)
+    # 2. Define testing schedule (Minutes from start)
+    # The gaps between these are: 0, 1, 1, 1, 2, 5 minutes
+    intervals = [0, 1, 2, 3, 5, 10]
+    last_checkpoint = 0
 
-# 1 Minute
-time.sleep(60)
-os.system(r"ECHO 【1 Minute】 >> " + MemStationary)
-os.system(r"adb shell grep -e MemAvailable proc/meminfo >> " + MemStationary)
-os.system(r"ECHO. >> " + MemStationary)
+    # 3. Execution Loop
+    for minute in intervals:
+        # Calculate sleep time based on the difference from the last checkpoint
+        sleep_duration = (minute - last_checkpoint) * 60
+        if sleep_duration > 0:
+            print(f"[Waiting] Sleeping for {minute - last_checkpoint} minute(s)...")
+            time.sleep(sleep_duration)
 
-# 2 Minute
-time.sleep(60)
-os.system(r"ECHO 【2 Minute】 >> " + MemStationary)
-os.system(r"adb shell grep -e MemAvailable proc/meminfo >> " + MemStationary)
-os.system(r"ECHO. >> " + MemStationary)
+        # Prepare log entry
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        label = "Origin" if minute == 0 else f"{minute} Minute"
+        mem_info = get_mem_available()
+        
+        entry = f"【{label}】 @ {timestamp}\n{mem_info}\n\n"
+        
+        # Write to console and file
+        print(f"[Logging] {label}")
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(entry)
+        
+        last_checkpoint = minute
 
-# 3 Minute
-time.sleep(60)
-os.system(r"ECHO 【3 Minute】 >> " + MemStationary)
-os.system(r"adb shell grep -e MemAvailable proc/meminfo >> " + MemStationary)
-os.system(r"ECHO. >> " + MemStationary)
+    print("\nTest Completed.")
+    input("Press Enter to exit...") # Cross-platform alternative to PAUSE
 
-# 5 Minute
-time.sleep(120)
-os.system(r"ECHO 【5 Minute】 >> " + MemStationary)
-os.system(r"adb shell grep -e MemAvailable proc/meminfo >> " + MemStationary)
-os.system(r"ECHO. >> " + MemStationary)
-
-# 10 Minute
-time.sleep(300)
-os.system(r"ECHO 【10 Minute】 >> " + MemStationary)
-os.system(r"adb shell grep -e MemAvailable proc/meminfo >> " + MemStationary)
-
-print("測試結束")
-os.system("PAUSE")
+if __name__ == "__main__":
+    main()

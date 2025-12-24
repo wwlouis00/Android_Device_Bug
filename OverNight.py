@@ -3,34 +3,57 @@ import time
 import subprocess
 from datetime import datetime
 
+def get_meminfo():
+    """Fetches memory info from the device via adb."""
+    try:
+        # Using subprocess.check_output for better error handling
+        output = subprocess.check_output(["adb", "shell", "cat", "/proc/meminfo"], 
+                                         universal_newlines=True, 
+                                         stderr=subprocess.STDOUT)
+        return output
+    except subprocess.CalledProcessError as e:
+        return f"[ERROR] Failed to fetch meminfo: {e.output}"
+    except FileNotFoundError:
+        return "[ERROR] ADB command not found. Please ensure ADB is installed and in PATH."
+
 def main():
-    # 在當前目錄建立檔案
+    # Configuration
+    total_iterations = 12
+    interval_seconds = 3600  # 1 hour
     base_dir = os.getcwd()
     result_file = os.path.join(base_dir, "MemTest.txt")
 
-    print(f"[INFO] 紀錄檔案：{result_file}")
+    print(f"[INFO] Logging to: {result_file}")
+    print(f"[INFO] Monitoring started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-    for i in range(12):  # 跑 12 次
-        header = f"=============<{i+1}>=============\n"
-        print(header.strip())
+    # Open file in append mode once per iteration or use a single context manager
+    for i in range(total_iterations):
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        header = f"============= <Iteration {i+1}> | {current_time} =============\n"
+        
+        print(f"[INFO] Progress: {i+1}/{total_iterations} - Logging data...")
 
-        # 用 append 模式一次寫入 header
-        with open(result_file, "a", encoding="utf-8") as f:
-            f.write(header)
+        # Fetch data
+        mem_data = get_meminfo()
 
-        # 直接抓 adb 輸出
-        meminfo = subprocess.getoutput("adb shell cat /proc/meminfo")
+        # Write to file
+        try:
+            with open(result_file, "a", encoding="utf-8") as f:
+                f.write(header)
+                f.write(mem_data)
+                f.write("\n\n")
+        except IOError as e:
+            print(f"[ERROR] Could not write to file: {e}")
 
-        # 寫入檔案
-        with open(result_file, "a", encoding="utf-8") as f:
-            f.write(meminfo + "\n\n")
+        # Wait for the next cycle, except after the last iteration
+        if i < total_iterations - 1:
+            print(f"[INFO] Sleeping for {interval_seconds} seconds...")
+            time.sleep(interval_seconds)
 
-        # 每次間隔 1 小時
-        if i < 11:  # 最後一次不需要 sleep
-            time.sleep(3600)
+    print(f"[INFO] Monitoring completed successfully at {datetime.now()}.")
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n[INFO] 使用者中斷程式。")
+        print("\n[INFO] Program interrupted by user.")
